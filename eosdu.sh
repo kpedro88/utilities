@@ -7,10 +7,13 @@
 
 # This will sum the size of all content inside the LFN and return the number in B
 # or an empty string for empty directories
+#function getSizeOf {
+#    for theDir in $(eos root://cmseos.fnal.gov find $1 | awk '{print $0" "substr($0,length,1)}' | grep \ / | cut -d \  -f1) ; do
+#        eos root://cmseos.fnal.gov ls -l $theDir
+#    done | awk '{ sum+=$5} END {print sum}'
+#}
 function getSizeOf {
-    for theDir in $(eos root://cmseos.fnal.gov find $1 | awk '{print $0" "substr($0,length,1)}' | grep \ / | cut -d \  -f1) ; do
-        eos root://cmseos.fnal.gov ls -l $theDir
-    done | awk '{ sum+=$5} END {print sum}'
+    eos root://cmseos.fnal.gov find $1 | grep "/$" | xargs -n1 -P4 eos root://cmseos.fnal.gov ls -l | awk '{ sum+=$5} END {print sum}'
 }
 
 function printSizeOf {
@@ -45,11 +48,13 @@ HUMAN=$2
 #"wildcard" option
 if [[ "${DIR: -1}" == "*" ]]; then
 	DIR="${DIR:0:$((${#DIR}-1))}"
-	for i in $(eos root://cmseos.fnal.gov ls $DIR); do
-		theSize=$(printSizeOf $DIR/$i)
-		echo "$i $theSize"
+	for i in $(eos root://cmseos.fnal.gov find --maxdepth 1 $DIR | grep "/$"); do
+		if [[ "$i" == "$DIR" || "$i" == /eos/uscms"$DIR" ]]; then
+		    continue
+        fi
+		theSize=$(printSizeOf $i)
+		echo "`basename $i` $theSize"
 	done
 else
 	printSizeOf $DIR
 fi
-
