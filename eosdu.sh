@@ -8,12 +8,12 @@
 # This will sum the size of all content inside the LFN and return the number in B
 # or an empty string for empty directories
 function getSizeOf {
-	eos root://cmseos.fnal.gov find $1 | grep "/$" | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls -l | awk '{sum+=$5} END {print sum}'
+	eos root://cmseos.fnal.gov find -d $1 | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls -l | awk '{sum+=$5} END {print sum}'
 }
 
 # This does the same, but counts number of files
 function getFilesOf {
-	eos root://cmseos.fnal.gov find $1 | grep "/$" | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls | wc -l | awk '{sum+=$0} END {print sum}'
+	eos root://cmseos.fnal.gov find -d $1 | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls | wc -l | awk '{sum+=$0} END {print sum}'
 }
 
 function printSizeOf {
@@ -68,8 +68,8 @@ DIR=$1
 
 #"recursive" option
 if [[ -n "$RECURSE" ]]; then
-	for i in $(eos root://cmseos.fnal.gov find --maxdepth 1 $DIR | grep "/$"); do
-		if [[ "$i" == "$DIR" || "$i" == /eos/uscms"$DIR" || "$i" == "$DIR"/ || "$i" == /eos/uscms"$DIR"/ ]]; then
+	for i in $(eos root://cmseos.fnal.gov find -d --maxdepth 1 $DIR); do
+		if [[ "$i" == "$DIR" || "$i" == /eos/uscms"$DIR" || "$i" == "$DIR"/ || "$i" == /eos/uscms"$DIR"/ || "$i" == root://cmseos.fnal.gov//eos/uscms"$DIR" || "$i" == root://cmseos.fnal.gov//eos/uscms"$DIR"/ ]]; then
 			continue
 		fi
 		theSize=$(printSizeOf $i)
