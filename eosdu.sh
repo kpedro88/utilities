@@ -8,7 +8,7 @@
 # This will sum the size of all content inside the LFN and return the number in B
 # or an empty string for empty directories
 function getSizeOf {
-	eos root://cmseos.fnal.gov find -d $1 | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls -l | awk '{sum+=$5} END {print sum}'
+	eos root://cmseos.fnal.gov find -d $1 | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos root://cmseos.fnal.gov ls -l $1)' '{sum+=$5} END {print sum}' ARG | awk '{sum+=$0} END {print sum}'
 }
 
 # This does the same, but counts number of files
