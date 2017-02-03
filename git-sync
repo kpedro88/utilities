@@ -1,0 +1,6 @@
+#!/bin/bash
+
+REMOTE=$1
+git fetch ${REMOTE}
+git reset --hard ${REMOTE}/$(basename $(git symbolic-ref HEAD))
+
