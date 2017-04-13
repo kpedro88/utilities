@@ -33,9 +33,10 @@ if [ "$HELP" == "true" ]; then
   usage
 fi
 
-#git status -s $UARG | while read mode file; do echo $mode $(stat -c %y $file) $file; done | sort -k1.4
-# handles moved or deleted files
-git status -s $UARG | while read mode file; do 
+# handles moved or deleted files, keeps track of staging
+git status -s $UARG | while IFS= read -r; do 
+  mode=${REPLY:0:2}
+  unset IFS; read -r junk file <<< "$REPLY"
   afile=($file)
   nowfile=${afile[${#afile[@]}-1]}
   if [ -f $nowfile ]; then
@@ -43,4 +44,4 @@ git status -s $UARG | while read mode file; do
   else
     datestr="---"
   fi
-  echo $mode $datestr $file; done | sort -k1.4
+  echo "$mode" "$datestr" "$file"; done | sort -k1.4
