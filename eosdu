@@ -6,29 +6,34 @@
 #
 
 case `uname` in
-  Linux) ECHO="echo -e" ;;
-  *) ECHO="echo" ;;
+	Linux) ECHO="echo -e" ;;
+	*) ECHO="echo" ;;
 esac
 
 # This will sum the size of all content inside the LFN and return the number in B
 # or an empty string for empty directories
-function getSizeOf {
-	eos root://cmseos.fnal.gov find -d $1 | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos root://cmseos.fnal.gov ls -l $1)' '{sum+=$5} END {print sum}' ARG | awk '{sum+=$0} END {print sum}'
+getSizeOf() {
+	DIR=$1
+	SERVER=$2
+	eos $SERVER find -d $DIR | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos $2 ls -l $1)' '{sum+=$5} END {print sum}' ARG $SERVER | awk '{sum+=$0} END {print sum}'
 }
 
 # This does the same, but counts number of files
 getFilesOf() {
-	eos root://cmseos.fnal.gov find -d $1 | xargs -d '\n' -n1 -P4 eos root://cmseos.fnal.gov ls | wc -l | awk '{sum+=$0} END {print sum}'
+	DIR=$1
+	SERVER=$2
+	eos $SERVER find -d $DIR | xargs -d '\n' -n1 -P4 eos $SERVER ls | wc -l | awk '{sum+=$0} END {print sum}'
 }
 
 printSizeOf() {
 	DIR=$1
+	SERVER=$2
 
 	# Get the size of the LFN
 	if [ -z "$FILES" ]; then
-		theSize=$(getSizeOf $DIR)
+		theSize=$(getSizeOf $DIR $SERVER)
 	else
-		theSize=$(getFilesOf $DIR)
+		theSize=$(getFilesOf $DIR $SERVER)
 	fi
 
 	# Empty directories will evaluate true
@@ -56,6 +61,7 @@ usage() {
 	$ECHO "eosdu [options] <LFN>"
 	$ECHO
 	$ECHO "Options:"
+	$ECHO "-s        \txrootd server name (default = root://cmseos.fnal.gov)"
 	$ECHO "-f        \tcount number of files instead of disk usage"
 	$ECHO "-h        \tprint human readable sizes"
 	$ECHO "-r        \trun eosdu for each file/directory in <LFN>"
@@ -66,15 +72,18 @@ usage() {
 HUMAN=""
 FILES=""
 RECURSE=""
+SERVER=root://cmseos.fnal.gov
 
 #check arguments
-while getopts "fhr" opt; do
+while getopts "fhrs:" opt; do
 	case "$opt" in
 	f) FILES=yes
 	;;
 	h) HUMAN=yes
 	;;
 	r) RECURSE=yes
+	;;
+	s) SERVER=$OPTARG
 	;;
 	esac
 done
@@ -88,13 +97,13 @@ fi
 
 #"recursive" option
 if [[ -n "$RECURSE" ]]; then
-	for i in $(eos root://cmseos.fnal.gov find -d --maxdepth 1 $DIR); do
-		if [[ "$i" == "$DIR" || "$i" == /eos/uscms"$DIR" || "$i" == "$DIR"/ || "$i" == /eos/uscms"$DIR"/ || "$i" == root://cmseos.fnal.gov//eos/uscms"$DIR" || "$i" == root://cmseos.fnal.gov//eos/uscms"$DIR"/ ]]; then
+	for i in $(eos $SERVER find -d --maxdepth 1 $DIR); do
+		if [[ "$i" == *"$DIR" || "$i" == *"$DIR"/ ]]; then
 			continue
 		fi
-		theSize=$(printSizeOf $i)
+		theSize=$(printSizeOf $i $SERVER)
 		$ECHO "`basename $i` $theSize"
 	done
 else
-	printSizeOf $DIR
+	printSizeOf $DIR $SERVER
 fi
