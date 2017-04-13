@@ -1,6 +1,59 @@
-#!/bin/bash
+#!/bin/bash -e
 
-REMOTE=$1
+case `uname` in
+  Linux) ECHO="echo -e" ;;
+  *) ECHO="echo" ;;
+esac
+
+usage() {
+  $ECHO "git sync [options] <remote>"
+  $ECHO
+  $ECHO "Options:"
+  $ECHO "-s, --stash        \tstash any uncommitted changes before syncing"
+  $ECHO "-p, --pop        \tpop stashed changes after syncing"
+  $ECHO "-a, --apply        \tapply stashed changes after syncing"
+  exit 1
+}
+
+AFTER=""
+
+while [ $# -gt 0 ]; do
+  case $1 in 
+    -s|--stash)
+      STASH=true
+      shift
+      ;;
+    -p|--pop)
+      AFTER=pop
+      shift
+      ;;
+    -a|--apply)
+      AFTER=apply
+      shift
+      ;;
+    -*)
+      $ECHO "Unknown option $1" ; exit 1 ;;
+    *)
+      if [ ! X$REMOTE = X ]; then
+        $ECHO "Unexpected extra argument $1" ; exit 1
+      fi
+      REMOTE=$1
+      shift
+      ;;
+  esac
+done
+if [ "$REMOTE" == "" ]; then
+  usage
+fi
+
+if [ "$STASH" == "true" ]; then
+  git stash
+fi
+
 git fetch ${REMOTE}
 git reset --hard ${REMOTE}/$(basename $(git symbolic-ref HEAD))
+
+if [ "$STASH" == "true" ] && [ -n "$AFTER" ]; then
+  git stash $AFTER
+fi
 
