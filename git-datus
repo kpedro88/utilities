@@ -1,0 +1,46 @@
+#!/bin/bash
+
+case `uname` in
+  Linux) ECHO="echo -e" ;;
+  *) ECHO="echo" ;;
+esac
+
+usage() {
+  $ECHO "git datus [options]"
+  $ECHO
+  $ECHO "Options:"
+  $ECHO "-u[mode]        \tshow untracked files (mode = no, normal, all)"
+  $ECHO "-h,--help        \tshow this message and exit"
+  exit 1
+}
+
+UARG=""
+while [ $# -gt 0 ]; do
+  case $1 in 
+    -u*)
+      UARG=$1
+      shift
+      ;;
+    -h|--help)
+      HELP=true
+      shift
+      ;;
+    -*)
+      $ECHO "Unknown option $1" ; exit 1 ;;
+  esac
+done
+if [ "$HELP" == "true" ]; then
+  usage
+fi
+
+#git status -s $UARG | while read mode file; do echo $mode $(stat -c %y $file) $file; done | sort -k1.4
+# handles moved or deleted files
+git status -s $UARG | while read mode file; do 
+  afile=($file)
+  nowfile=${afile[${#afile[@]}-1]}
+  if [ -f $nowfile ]; then
+    datestr=$(stat -c %y $nowfile)
+  else
+    datestr="---"
+  fi
+  echo $mode $datestr $file; done | sort -k1.4
