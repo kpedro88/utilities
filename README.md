@@ -4,6 +4,10 @@
 
 A very simple script to list all available scram architectures for a specified CMSSW release number. Requires cvmfs.
 
+## `peakMem.sh`
+
+Parse the output of the CMSSW `SimpleMemoryCheck` service to determine the peak VSIZE and RSS values from a given process log.
+
 ## `scramProgress.sh`
 
 Tracks the progress of compilation with scram, assuming the scram printouts are redirected into a log file. Output looks like:
