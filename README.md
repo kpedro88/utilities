@@ -38,8 +38,13 @@ Options:
 
 ## `xrdcpLocal.sh`
 
-Script to copy a file over xrootd to the local area, keeping the entire LFN as the local filename
-('/' replaced with '_'). Arguments are redirector/server address and LFN.
+Script to copy a file over xrootd to specified directory (local area by default),
+keeping the entire LFN as the local filename ('/' replaced with '_'). Arguments:
+* `-f`: use `xrdcp -f`
+* `-q`: use `xrdcp -q`
+* `-x [redir]`: xrootd redirector (required)
+* `-L [lfn]`: logical filename (LFN) (required)
+* `-o [dir]`: output directory (default = `./`)
 
 # HTCondor
 
