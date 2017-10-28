@@ -54,7 +54,10 @@ A very simple script to sort the output of `condor_userprio -allusers` by the us
 
 ## `condorq_all.sh`
 
-Sums up the total number of jobs (with each status) over *all* accessible schedulers.
+Sums up the total number of jobs (with each status) over *all* accessible schedulers, for specified user:
+```
+./condorq_all.sh [username]
+```
 
 # Git
 
