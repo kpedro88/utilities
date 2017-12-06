@@ -1,4 +1,22 @@
-#!/bin/bash
+#!/bin/bash -e
+
+case `uname` in
+	Linux) ECHO="echo -e" ;;
+	*) ECHO="echo" ;;
+esac
+
+usage(){
+	$ECHO "xrdcpLocal.sh [options]"
+	$ECHO
+	$ECHO "Options:"
+	$ECHO "-x        \tredirector (root://.../) (required)"
+	$ECHO "-L        \tlogical file name (/store/...) (required)"
+	$ECHO "-o        \toutput directory (default = pwd)"
+	$ECHO "-f        \tforce (overwrite if file already exists at destination)"
+	$ECHO "-q        \tquiet (don't print progress)"
+
+	exit 1
+}
 
 REDIR=""
 LFN=""
@@ -21,14 +39,8 @@ while getopts "fqx:L:o:" opt; do
 	esac
 done
 
-if [ -z "$REDIR" ]; then
-	echo "Must specify redirector with -x"
-	exit 1
-fi
-
-if [ -z "$LFN" ]; then
-	echo "Must specify LFN with -L"
-	exit 1
+if [ -z "$REDIR" ] || [ -z "$LFN" ]; then
+	usage
 fi
 
 FN=`echo ${LFN} | sed 's~/~_~g'`
