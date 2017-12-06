@@ -26,16 +26,16 @@ QUIET=""
 
 while getopts "fqx:L:o:" opt; do
 	case "$opt" in
-	f) FORCE="-f"
-	;;
-	q) QUIET="-q"
-	;;
-	x) REDIR=$OPTARG
-	;;
-	L) LFN=$OPTARG
-	;;
-	o) OUTDIR=$OPTARG
-	;;
+		f) FORCE="-f"
+		;;
+		q) QUIET="-q"
+		;;
+		x) REDIR=$OPTARG
+		;;
+		L) LFN=$OPTARG
+		;;
+		o) OUTDIR=$OPTARG
+		;;
 	esac
 done
 
