@@ -93,6 +93,12 @@ Options:
 
 Fast deletion of a directory containing *many* files, using rsync.
 
+## `runIgprof.sh`
+
+Script to run igprof and produce a report. Currently only supports performance profiling and ASCII reports. Options:
+* `-c [command]` - command to profile (enclose in "" if contains spaces)
+* `-n [name]` - name for output files (default = test)
+
 ## `wgetcern.sh`
 
 Script to use `wget` with `cern-get-sso-cookie` ([ref](http://linux.web.cern.ch/linux/docs/cernssocookie.shtml)),
