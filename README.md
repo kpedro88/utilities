@@ -98,6 +98,7 @@ Fast deletion of a directory containing *many* files, using rsync.
 Script to run igprof and produce a report. Currently only supports performance profiling and ASCII reports. Options:
 * `-c [command]` - command to profile (enclose in "" if contains spaces)
 * `-n [name]` - name for output files (default = test)
+* `-s` - make sorted list (and total) of CPU usage in event loop for all EDProducers/Filters/Analyzers (CMSSW-specific)
 
 ## `wgetcern.sh`
 
