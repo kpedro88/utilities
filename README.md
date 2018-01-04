@@ -104,3 +104,5 @@ Script to run igprof and produce a report. Currently only supports performance p
 
 Script to use `wget` with `cern-get-sso-cookie` ([ref](http://linux.web.cern.ch/linux/docs/cernssocookie.shtml)),
 to download files protected by CERN single sign on.
+CERN SSO authentication can proceed via kerberos (default) or via user certificates
+with the arguments `--cert` and `--key` (see above link for more info).
