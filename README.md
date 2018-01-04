@@ -93,6 +93,14 @@ Options:
 
 Fast deletion of a directory containing *many* files, using rsync.
 
+## `diffy`
+
+Script to use diff side-by-side view (`diff -y`) with automatic width (max line length from input files), piped to `less -S` (no word wrap). Options:
+* `-M [num]` - specify max width
+* `-L` - shorthand for `--left-column` diff option
+
+All other flags are passed directly to the `diff` command (e.g. `-t`).
+
 ## `runIgprof.sh`
 
 Script to run igprof and produce a report. Currently only supports performance profiling and ASCII reports. Options:
