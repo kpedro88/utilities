@@ -107,6 +107,7 @@ Script to run igprof and produce a report. Currently only supports performance p
 * `-c [command]` - command to profile (enclose in "" if contains spaces)
 * `-n [name]` - name for output files (default = test)
 * `-s` - make sorted list (and total) of CPU usage in event loop for all EDProducers/Filters/Analyzers (CMSSW-specific)
+* `-t [exe]` - limit profiling to specified target executable (needed for `cmsRun` w/ ROOT 6.10)
 
 ## `wgetcern.sh`
 

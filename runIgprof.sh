@@ -3,13 +3,16 @@
 CMD=""
 NAME="test"
 SORT=""
+TARGET=""
 
 # todo: add mp, sqlite options
-while getopts "c:n:s" opt; do
+while getopts "c:n:t:s" opt; do
 	case "$opt" in
 		c) CMD=$OPTARG
 		;;
 		n) NAME=$OPTARG
+		;;
+		t) TARGET="-t $OPTARG"
 		;;
 		s) SORT=true
 		;;
@@ -23,7 +26,7 @@ fi
 
 IGNAME=igprof_${NAME}
 IGREP=igreport_${NAME}
-igprof -d -pp -z -o ${IGNAME}.pp.gz ${CMD} > ${IGNAME}.log 2>&1
+igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${CMD} > ${IGNAME}.log 2>&1
 igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP}.res 2>&1
 
 echo "Produced ${IGREP}.res"
