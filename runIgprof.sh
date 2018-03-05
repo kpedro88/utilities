@@ -4,9 +4,10 @@ CMD=""
 NAME="test"
 SORT=""
 TARGET=""
+ROOT=""
 
 # todo: add mp, sqlite options
-while getopts "c:n:t:s" opt; do
+while getopts "c:n:t:sr" opt; do
 	case "$opt" in
 		c) CMD=$OPTARG
 		;;
@@ -16,12 +17,19 @@ while getopts "c:n:t:s" opt; do
 		;;
 		s) SORT=true
 		;;
+		r) ROOT=true
+		;;
 	esac
 done
 
 if [ -z "$CMD" ]; then
 	echo "-c required"
 	exit 1
+fi
+
+# special way to run a ROOT macro (otherwise difficult due to quote nesting)
+if [ -n "$ROOT" ]; then
+	CMD="root.exe -b -l -q $CMD"
 fi
 
 IGNAME=igprof_${NAME}
