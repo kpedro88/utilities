@@ -34,8 +34,11 @@ fi
 
 IGNAME=igprof_${NAME}
 IGREP=igreport_${NAME}
-igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${CMD} > ${IGNAME}.log 2>&1
-igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP}.res 2>&1
+# subshell to log commands but avoid `set +x`
+(set -x;
+igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${CMD} > ${IGNAME}.log 2>&1;
+igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP}.res 2>&1;
+)
 
 echo "Produced ${IGREP}.res"
 
