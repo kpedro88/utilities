@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+case `uname` in
+  Linux) ECHO="echo -e" ;;
+  *) ECHO="echo" ;;
+esac
+
 sort_report() {
 	MODE=$1
 	NAME=$2
@@ -11,7 +16,23 @@ sort_report() {
 	elif [ "$MODE" == "desc" ]; then
 		awk -v module=${MODULE} 'BEGIN { total = 0; } { if(substr($0,0,1)=="-"){good = 0;}; if(good&&length($0)>0){print $0; total += $3;}; if(substr($0,0,1)=="["&&index($0,module)!=0) {good = 1;} } END { print "Total: "total } ' ${IGREP} | sort -n -r -k1 | awk '{ if(index($0,"Total: ")!=0){total=$0;} else{print $0;} } END { print total; }' > ${IGSORT} 2>&1		
 	fi
-	echo "Produced ${IGSORT}"
+	$ECHO "Produced ${IGSORT}"
+}
+
+usage(){
+	EXIT=$1
+	$ECHO "runIgprof.sh [options]"
+	$ECHO
+	$ECHO "Options:"
+	$ECHO "-e 'command'        \tcommand to profile (should be quoted)"
+	$ECHO "-n name             \tname for output files"
+	$ECHO "-t target           \ttarget for igprof -t option"
+	$ECHO "-s modules          \tproduce sorted reports of contributions, one for each module (comma-separated list)"
+	$ECHO "-d modules          \tproduce sorted reports of contributions, one for each module's descendants (comma-separated list)"
+	$ECHO "-r                  \tprepend 'root.exe -b -l -q ' to command (for ROOT)"
+	$ECHO "-c                  \tspecial settings for cmsRun"
+	$ECHO "-h                  \tshow this message and exit"
+	exit $EXIT
 }
 
 EXE=""
@@ -23,7 +44,7 @@ ROOT=""
 CMS=""
 
 # todo: add mp, sqlite options
-while getopts "e:n:t:s:d:rc" opt; do
+while getopts "e:n:t:s:d:rch" opt; do
 	case "$opt" in
 		e) EXE=$OPTARG
 		;;
@@ -38,6 +59,9 @@ while getopts "e:n:t:s:d:rc" opt; do
 		r) ROOT=true
 		;;
 		c) CMS=true
+		;;
+		h) usage 0
+		;;
 	esac
 done
 
@@ -50,8 +74,9 @@ if [ -n "$CMS" ]; then
 fi
 
 if [ -z "$EXE" ] && [ ${#SORTSELF[@]} -eq 0 ] && [ ${#SORTDESC[@]} -eq 0 ]; then
-	echo "-e or -s or -d required"
-	exit 1
+	$ECHO "-e or -s or -d required"
+	$ECHO ""
+	usage 1
 fi
 
 if [ -n "$EXE" ]; then
@@ -68,7 +93,7 @@ if [ -n "$EXE" ]; then
 	igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP} 2>&1;
 	)
 
-	echo "Produced ${IGREP}"
+	$ECHO "Produced ${IGREP}"
 fi
 
 # find module contributions, make sorted list & total

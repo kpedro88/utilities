@@ -103,12 +103,18 @@ All other flags are passed directly to the `diff` command (e.g. `-t`).
 
 ## `runIgprof.sh`
 
-Script to run igprof and produce a report. Currently only supports performance profiling and ASCII reports. Options:
-* `-c [command]` - command to profile (enclose in "" if contains spaces)
+Script to run igprof and produce a report. Currently only supports performance profiling and ASCII reports.
+If a name is specified with no associated command but with sorting options, it will try to locate the
+corresponding report and produce sorted reports.
+Options:
+* `-e [command]` - command to profile (enclose in "" if contains spaces)
 * `-n [name]` - name for output files (default = test)
-* `-s` - make sorted list (and total) of CPU usage in event loop for all EDProducers/Filters/Analyzers (CMSSW-specific)
-* `-t [exe]` - limit profiling to specified target executable (needed for `cmsRun` w/ ROOT 6.10)
+* `-t [exe]` - limit profiling to specified target executable
+* `-s [modules]` - produce sorted reports of contributions, one for each module (comma-separated list)
+* `-d [modules]` - produce sorted reports of contributions, one for each module's descendants (comma-separated list)
 * `-r` - profile a ROOT macro, prepends `root.exe -b -l -q ` to specified command (avoid quote nesting)
+* `-c` - special settings for `cmsRun` (use `-t cmsRun`, sort descendants of `doEvent`)
+* `-h` - print help message and exit
 
 ## `wgetcern.sh`
 
