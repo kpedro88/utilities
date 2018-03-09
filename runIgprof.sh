@@ -14,17 +14,18 @@ sort_report() {
 	echo "Produced ${IGSORT}"
 }
 
-CMD=""
+EXE=""
 NAME="test"
 SORTSELF=()
 SORTDESC=()
 TARGET=""
 ROOT=""
+CMS=""
 
 # todo: add mp, sqlite options
-while getopts "c:n:t:s:d:r" opt; do
+while getopts "e:n:t:s:d:rc" opt; do
 	case "$opt" in
-		c) CMD=$OPTARG
+		e) EXE=$OPTARG
 		;;
 		n) NAME=$OPTARG
 		;;
@@ -36,25 +37,34 @@ while getopts "c:n:t:s:d:r" opt; do
 		;;
 		r) ROOT=true
 		;;
+		c) CMS=true
 	esac
 done
 
-if [ -z "$CMD" ] && [ ${#SORTSELF[@]} -eq 0 ] && [ ${#SORTDESC[@]} -eq 0 ]; then
-	echo "-c or -s or -d required"
+# special CMS settings
+if [ -n "$CMS" ]; then
+	SORTDESC+=("doEvent")
+	if [ -z "$TARGET" ]; then
+		TARGET="-t cmsRun"
+	fi
+fi
+
+if [ -z "$EXE" ] && [ ${#SORTSELF[@]} -eq 0 ] && [ ${#SORTDESC[@]} -eq 0 ]; then
+	echo "-e or -s or -d required"
 	exit 1
 fi
 
-if [ -n "$CMD" ]; then
+if [ -n "$EXE" ]; then
 	# special way to run a ROOT macro (otherwise difficult due to quote nesting)
 	if [ -n "$ROOT" ]; then
-		CMD="root.exe -b -l -q $CMD"
+		EXE="root.exe -b -l -q $EXE"
 	fi
 
 	IGNAME=igprof_${NAME}
 	IGREP=igreport_${NAME}.res
 	# subshell to log commands but avoid `set +x`
 	(set -x;
-	igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${CMD} > ${IGNAME}.log 2>&1;
+	igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${EXE} > ${IGNAME}.log 2>&1;
 	igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP} 2>&1;
 	)
 
