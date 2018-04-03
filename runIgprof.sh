@@ -12,7 +12,7 @@ sort_report() {
 	IGREP=igreport_${NAME}.res
 	IGSORT=igsorted_${NAME}_${MODULE}_${MODE}.res
 	if [ "$MODE" == "self" ]; then
-		awk -v module=${MODULE} 'BEGIN { total = 0; } { if(substr($0,0,1)=="["&&index($0,module)!=0) {print $0; total += $3;} } END { print "Total: "total } ' igreport_testNew.res | sort -n -r -k3 | awk '{ if(index($0,"Total: ")!=0){total=$0;} else{print $0;} } END { print total; }' > ${IGSORT} 2>&1
+		awk -v module=${MODULE} 'BEGIN { total = 0; } { if(substr($0,0,1)=="["&&index($0,module)!=0) {print $0; total += $3;} } END { print "Total: "total } ' ${IGREP} | sort -n -r -k3 | awk '{ if(index($0,"Total: ")!=0){total=$0;} else{print $0;} } END { print total; }' > ${IGSORT} 2>&1
 	elif [ "$MODE" == "desc" ]; then
 		awk -v module=${MODULE} 'BEGIN { total = 0; } { if(substr($0,0,1)=="-"){good = 0;}; if(good&&length($0)>0){print $0; total += $3;}; if(substr($0,0,1)=="["&&index($0,module)!=0) {good = 1;} } END { print "Total: "total } ' ${IGREP} | sort -n -r -k1 | awk '{ if(index($0,"Total: ")!=0){total=$0;} else{print $0;} } END { print total; }' > ${IGSORT} 2>&1		
 	fi
