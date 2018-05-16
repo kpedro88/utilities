@@ -70,6 +70,7 @@ git datus [options]
 
 Options:
 -u[mode]                show untracked files (mode = no, normal, all)
+-l,--long               show long timestamp
 -h,--help               show this message and exit
 ```
 
