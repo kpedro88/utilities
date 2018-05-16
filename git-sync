@@ -51,7 +51,7 @@ if [ "$STASH" == "true" ]; then
 fi
 
 git fetch ${REMOTE}
-git reset --hard ${REMOTE}/$(basename $(git symbolic-ref HEAD))
+git reset --hard ${REMOTE}/$(git rev-parse --abbrev-ref HEAD)
 
 if [ "$STASH" == "true" ] && [ -n "$AFTER" ]; then
   git stash $AFTER
