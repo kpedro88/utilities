@@ -117,6 +117,17 @@ Options:
 * `-c` - special settings for `cmsRun` (use `-t cmsRun`, sort descendants of `doEvent`)
 * `-h` - print help message and exit
 
+## `setupCert.sh`
+
+Script to set up a grid certificate for use on a remote server. Usage:
+```
+setupCert.sh [options] [user@server] [p12 file]
+
+Options:
+-c              set up for cern-get-sso-cookie
+-d              dry run (just print commands, don't execute)
+```
+
 ## `wgetcern.sh`
 
 Script to use `wget` with `cern-get-sso-cookie` ([ref](http://linux.web.cern.ch/linux/docs/cernssocookie.shtml)),
