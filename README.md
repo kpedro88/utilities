@@ -31,6 +31,7 @@ eosdu [options] <LFN>
 Options:
 -s              xrootd server name (default = root://cmseos.fnal.gov)
 -f              count number of files instead of disk usage
+-g              search for files matching specified string within directory
 -h              print human readable sizes
 -r              run eosdu for each file/directory in <LFN>
                 ('recursive'/'wildcard' option, like 'du *')
