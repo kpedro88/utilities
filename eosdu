@@ -10,6 +10,9 @@ case `uname` in
 	*) ECHO="echo" ;;
 esac
 
+# awk command to fix stupid citrine find command
+FIXFIND='{lfn=$1; while(substr(lfn,1,6)!="/store"&&length(lfn)>=6) { lfn = substr(lfn,2) }; print lfn}'
+
 # This will sum the size of all content inside the LFN and return the number in B
 # or an empty string for empty directories
 getSizeOf() {
@@ -18,7 +21,7 @@ getSizeOf() {
 	MATCH=$3
 	# default case
 	if [ -z "$MATCH" ]; then
-		eos $SERVER find -d $DIR | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos $2 ls -l $1)' '{sum+=$5} END {print sum}' ARG $SERVER | awk '{sum+=$0} END {print sum}'
+		eos $SERVER find -d $DIR | awk "$FIXFIND" | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos $2 ls -l $1)' '{sum+=$5} END {print sum}' ARG $SERVER | awk '{sum+=$0} END {print sum}'
 	# matching case
 	else
 		eos $SERVER ls -l $DIR | grep "$MATCH" | awk '{sum+=$5} END {print sum}'
@@ -32,7 +35,7 @@ getFilesOf() {
 	MATCH=$3
 	# default case
 	if [ -z "$MATCH" ]; then
-		eos $SERVER find -d $DIR | xargs -d '\n' -n1 -P4 eos $SERVER ls | wc -l | awk '{sum+=$0} END {print sum}'
+		eos $SERVER find -d $DIR | awk "$FIXFIND" | xargs -d '\n' -n1 -P4 eos $SERVER ls | wc -l | awk '{sum+=$0} END {print sum}'
 	# matching case
 	else
 		eos $SERVER ls $DIR | grep "$MATCH" | wc -l
@@ -116,7 +119,7 @@ fi
 
 #"recursive" option
 if [[ -n "$RECURSE" ]]; then
-	for i in $(eos $SERVER find -d --maxdepth 1 $DIR); do
+	for i in $(eos $SERVER find -d --maxdepth 1 $DIR | awk "$FIXFIND"); do
 		if [[ "$i" == *"$DIR" || "$i" == *"$DIR"/ ]]; then
 			continue
 		fi
