@@ -29,6 +29,7 @@ usage(){
 	$ECHO "-t target           \ttarget for igprof -t option"
 	$ECHO "-s modules          \tproduce sorted reports of contributions, one for each module (comma-separated list)"
 	$ECHO "-d modules          \tproduce sorted reports of contributions, one for each module's descendants (comma-separated list)"
+	$ECHO "-x args             \tany extra arguments to igprof (quoted)"
 	$ECHO "-r                  \tprepend 'root.exe -b -l -q ' to command (for ROOT)"
 	$ECHO "-c                  \tspecial settings for cmsRun"
 	$ECHO "-h                  \tshow this message and exit"
@@ -40,11 +41,12 @@ NAME="test"
 SORTSELF=()
 SORTDESC=()
 TARGET=""
+EXTRA=""
 ROOT=""
 CMS=""
 
 # todo: add mp, sqlite options
-while getopts "e:n:t:s:d:rch" opt; do
+while getopts "e:n:t:s:d:x:rch" opt; do
 	case "$opt" in
 		e) EXE=$OPTARG
 		;;
@@ -55,6 +57,8 @@ while getopts "e:n:t:s:d:rch" opt; do
 		s) IFS="," read -a SORTSELF <<< "$OPTARG"
 		;;
 		d) IFS="," read -a SORTDESC <<< "$OPTARG"
+		;;
+		x) EXTRA="$OPTARG"
 		;;
 		r) ROOT=true
 		;;
@@ -89,7 +93,7 @@ if [ -n "$EXE" ]; then
 	IGREP=igreport_${NAME}.res
 	# subshell to log commands but avoid `set +x`
 	(set -x;
-	igprof -d $TARGET -pp -z -o ${IGNAME}.pp.gz ${EXE} > ${IGNAME}.log 2>&1;
+	igprof -d $TARGET $EXTRA -pp -z -o ${IGNAME}.pp.gz ${EXE} > ${IGNAME}.log 2>&1;
 	igprof-analyse -d -v ${IGNAME}.pp.gz > ${IGREP} 2>&1;
 	)
 

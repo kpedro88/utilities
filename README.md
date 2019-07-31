@@ -114,6 +114,7 @@ Options:
 * `-t [exe]` - limit profiling to specified target executable
 * `-s [modules]` - produce sorted reports of contributions, one for each module (comma-separated list)
 * `-d [modules]` - produce sorted reports of contributions, one for each module's descendants (comma-separated list)
+* `-x [args]` - any extra arguments to igprof (quoted)
 * `-r` - profile a ROOT macro, prepends `root.exe -b -l -q ` to specified command (avoid quote nesting)
 * `-c` - special settings for `cmsRun` (use `-t cmsRun`, sort descendants of `doEvent`)
 * `-h` - print help message and exit
