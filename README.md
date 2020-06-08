@@ -60,6 +60,13 @@ Sums up the total number of jobs (with each status) over *all* accessible schedu
 ./condorq_all.sh [username]
 ```
 
+## `jobmon.py`
+
+Monitors overall status of running, idle, and held jobs on the LPC batch farm.
+```
+PAGER='less -S' jobmon.py
+```
+
 # Git
 
 ## `git-datus`
