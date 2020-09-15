@@ -1,8 +1,7 @@
 #!/bin/bash -e
 
 case `uname` in
-	Linux) ECHO="echo -e" ;;
-	CYGWIN*) ECHO="echo -e" ;;
+	Linux|CYGWIN*) ECHO="echo -e" ;;
 	*) ECHO="echo" ;;
 esac
 
