@@ -88,6 +88,7 @@ class StatusItemUserprio(StatusItem):
     def add_remove(self):
         totals = next(line for line in self.keep_lines if line[0]=="group_cmslpc")
         self.keep_lines.remove(totals)
+        self.keep_lines = sorted(self.keep_lines, key = lambda x: float(x[3]))
         self.keep_lines.extend(self.separator_lines)
         self.keep_lines.append(totals)
     def format(self,line):
