@@ -1,0 +1,62 @@
+#!/bin/bash -e
+
+case `uname` in
+	Linux|CYGWIN*) ECHO="echo -e" ;;
+	*) ECHO="echo" ;;
+esac
+
+EDITOR=nano
+usage() {
+  $ECHO "cmde COMMAND [cmde options] [--] [COMMAND options] FILE1 FILE2"
+  $ECHO
+  $ECHO "Options:"
+  $ECHO "-e [editor]  \ttext editor (default: $EDITOR)"
+  $ECHO "-f           \toverwrite FILE2 (if it already exists)"
+  $ECHO "-h           \tdisplay this message and exit"
+  $ECHO "--           \toptional separator (in case COMMAND uses same flags as cmde)"
+  exit $1
+}
+
+FORCE=""
+COMMAND=""
+while [ $# -gt 0 ]; do
+	case $1 in
+		-e)
+			EDITOR="$2"
+			shift; shift
+		;;
+		-f)
+			FORCE=1
+			shift
+		;;
+		-h)
+			usage 0
+			shift
+		;;
+		--)
+			shift
+			break
+		;;
+		*)
+			if [ -z "$COMMAND" ]; then
+				COMMAND="$1"
+				shift
+			else
+				break
+			fi
+		;;
+	esac
+done
+
+if [ -z "$COMMAND" ]; then
+	usage 1
+fi
+
+CMDARGS="$@"
+FILE2="${@: -1}"
+
+if [ -n "$FORCE" ] || [ ! -f "$FILE2" ]; then
+	$COMMAND $CMDARGS
+fi
+
+$EDITOR "$FILE2"

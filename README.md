@@ -98,6 +98,26 @@ Options:
 
 # Other
 
+## `cmde`
+
+Wrapper to run a command that creates a new file, and then edit the new file. Usage:
+```bash
+cmde COMMAND [cmde options] [--] [COMMAND options] FILE1 FILE2
+```
+
+Options:
+* `-e [editor]`: text editor (default: `nano`)
+* `-f`: overwrite FILE2 (if it already exists)
+* `-h`: display this message and exit
+* `--`: optional separator (in case COMMAND uses same flags as `cmde`)
+
+`cmde` does not work with all forms of all commands, but just those that end with `FILE1 FILE2` (i.e. `SRC DEST`) syntax.
+
+It is most typically used with `cp` (but could also be used with `mv`, etc.). Useful alias:
+```bash
+alias cpe='cmde cp'
+```
+
 ## `del_fast.sh`
 
 Fast deletion of a directory containing *many* files, using rsync.
