@@ -38,7 +38,7 @@ tunn_make() {
 	SOCKETNAME="$NAMEPRE"_"$SOCKETNUM"
 
 	# execute tunnel command
-	eval $CMD -N -D $PORT -f -M -S "$SOCKETNAME"
+	eval $CMD -N -D $PORT -f -M -S "$SOCKETNAME" 2>/dev/null
 	TEXIT=$?
 
 	# add to list of tunnels
@@ -72,6 +72,9 @@ tunn_list() {
 	fi
 
 	tunn_read
+	if [ ${#TLIST[@]} -eq 0 ]; then
+		return
+	fi
 	echo "index: socket port command"
 	for ((i=0; i < ${#TLIST[@]}; i++)); do
 		echo "$i: ${TLIST[$i]}"
