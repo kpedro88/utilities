@@ -1,0 +1,177 @@
+#!/bin/bash
+
+# helper functions
+
+tunn_check_op() {
+	if [ "$OP" != "$1" ]; then
+		usage 1
+	fi
+}
+
+tunn_read() {
+	# get list of tunnels
+	readarray -t TLIST < "$CONFIG"
+	export TLIST
+}
+
+tunn_entry() {
+	ENTRY="${TLIST[$1]}"
+	IFS=' ' read -r -a ENTRY_ARR <<< "$ENTRY"
+
+	# reconstruct command based on output format
+	export SOCKETNAME="${ENTRY_ARR[0]}"
+	export PORT="${ENTRY_ARR[1]}"
+	# gets last N-2 words
+	export CMD="${ENTRY_ARR[*]: -$((${#ENTRY_ARR[@]}-2))}"
+}
+
+# operations
+
+tunn_make() {
+	CMD="$1"
+	if [ -z "$CMD" ]; then
+		usage 1
+	fi
+
+	# generate a random name for socket
+	SOCKETNUM=$(uuidgen)
+	SOCKETNAME="$NAMEPRE"_"$SOCKETNUM"
+
+	# execute tunnel command
+	eval $CMD -N -D $PORT -f -M -S "$SOCKETNAME"
+	TEXIT=$?
+
+	# add to list of tunnels
+	if [ $TEXIT -eq 0 ]; then
+		echo "$SOCKETNAME $PORT $CMD" >> "$CONFIG"
+	else
+		echo "Could not create tunnel (exit code $TEXIT)"
+		exit $TEXIT
+	fi
+}
+
+tunn_list() {
+	if [ -n "$1" ]; then
+		usage 1
+	fi
+
+	if [ -n "$UPDATE" ]; then
+		tunn_read
+		# clear list of tunnels
+		: > "$CONFIG"
+		# write open tunnels back into list
+		for ((i=0; i < ${#TLIST[@]}; i++)); do
+			tunn_entry $i
+			if eval $CMD -S "$SOCKETNAME" -O check >&/dev/null; then
+				echo "${TLIST[$i]}" >> "$CONFIG"
+			else
+				rm "$SOCKETNAME" >&/dev/null
+			fi
+		done
+		unset TLIST
+	fi
+
+	tunn_read
+	echo "index: socket port command"
+	for ((i=0; i < ${#TLIST[@]}; i++)); do
+		echo "$i: ${TLIST[$i]}"
+	done
+}
+
+tunn_kill() {
+	INDEX="$1"
+	if [ -z "$INDEX" ]; then
+		usage 1
+	fi
+
+	# get this tunnel
+	tunn_read
+	if [ $INDEX -lt ${#TLIST[@]} ]; then
+		tunn_entry $INDEX
+	else
+		echo "Tunnel index $INDEX not found"
+		exit 2
+	fi
+
+	# execute kill command
+	eval $CMD -S "$SOCKETNAME" -O exit
+
+	# update list
+	sed -i "$((INDEX+1))"d "$CONFIG"
+}
+
+# defaults
+CONFIG=~/.tunnlist
+USE_ALIASES=true
+NAMEPRE=tsock
+PORT=8864
+SOCKETNAME=""
+CMD=""
+INDEX=""
+UPDATE=""
+
+usage() {
+	ECHO="echo -e"
+	$ECHO "tunn [operation] [options] [arguments]"
+	$ECHO
+	$ECHO "Operations:"
+	$ECHO
+	$ECHO "make       \t make new tunnel"
+	$ECHO "\t-n [name]   \t tunnel socket name prefix (default: ${NAMEPRE})"
+	$ECHO "\t-p [port]   \t tunnel port (default: $PORT)"
+	$ECHO "\t[command]   \t ssh command to run when making tunnel (required)"
+	$ECHO
+	$ECHO "list       \t list open tunnels"
+	$ECHO "\t-u       \t update list of tunnels (check status and remove closed ones)"
+	$ECHO
+	$ECHO "kill       \t kill specified tunnel"
+	$ECHO "\t[index]       \t index of tunnel (required)"
+	$ECHO
+	$ECHO "Common options:"
+	$ECHO "-A          \t disable loading of aliases"
+	$ECHO "-h          \t print this message and exit"
+	exit $1
+}
+
+# get operation
+OP=$1
+shift 1
+
+OPFN=""
+case "$OP" in
+	make) OPFN=tunn_make
+	;;
+	list) OPFN=tunn_list
+	;;
+	kill) OPFN=tunn_kill
+	;;
+	*) usage 1
+	;;
+esac
+
+while getopts "An:p:uh" opt; do
+	case "$opt" in
+		A) USE_ALIASES=""
+		;;
+		n) tunn_check_op make; NAMEPRE="$OPTARG"
+		;;
+		p) tunn_check_op make; PORT="$OPTARG"
+		;;
+		u) tunn_check_op list; UPDATE=true
+		;;
+		h) usage 0
+		;;
+	esac
+done
+
+# get ssh aliases
+if [ -n "$USE_ALIASES" ]; then
+	shopt -s expand_aliases
+	source ~/.bashrc
+fi
+
+# get args for operation (if any)
+shift $(($OPTIND - 1))
+
+# execute operation
+$OPFN $1

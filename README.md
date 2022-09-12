@@ -157,6 +157,37 @@ Options:
 -d              dry run (just print commands, don't execute)
 ```
 
+## `tunn`
+
+A simple utility to create and manage SSH tunnels.
+```
+tunn [operation] [options] [arguments]
+
+Operations:
+
+make             make new tunnel
+        -n [name]        tunnel socket name prefix (default: tsock)
+        -p [port]        tunnel port (default: 8864)
+        [command]        ssh command to run when making tunnel (required)
+
+list             list open tunnels
+        -u               update list of tunnels (check status and remove closed ones)
+
+kill             kill specified tunnel
+        [index]          index of tunnel (required)
+
+Common options:
+-A               disable loading of aliases
+-h               print this message and exit
+```
+
+Useful aliases:
+```
+alias tmake='tunn make'
+alias tlist='tunn list'
+alias tkill='tunn kill'
+```
+
 ## `wgetcern.sh`
 
 Script to use `wget` with `cern-get-sso-cookie` ([ref](http://linux.web.cern.ch/linux/docs/cernssocookie.shtml)),
