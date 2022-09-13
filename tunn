@@ -106,7 +106,7 @@ tunn_kill() {
 # defaults
 CONFIG=~/.tunnlist
 USE_ALIASES=true
-NAMEPRE=tsock
+NAMEPRE=~/tsock
 PORT=8864
 SOCKETNAME=""
 CMD=""
