@@ -80,6 +80,7 @@ Options:
 -u[mode]                show untracked files (mode = no, normal, all)
 -l,--long               show long timestamp
 -h,--help               show this message and exit
+--                      separator; anything after this will be passed to git status
 ```
 
 ## `git-sync`

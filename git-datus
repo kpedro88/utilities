@@ -12,7 +12,8 @@ usage() {
   $ECHO "-u[mode]        \tshow untracked files (mode = no, normal, all)"
   $ECHO "-l,--long       \tshow long timestamp"
   $ECHO "-h,--help       \tshow this message and exit"
-  exit 1
+  $ECHO "--              \tseparator; anything after this will be passed to git status"
+  exit $1
 }
 
 UARG=""
@@ -31,16 +32,24 @@ while [ $# -gt 0 ]; do
       HELP=true
       shift
       ;;
+    --)
+      shift
+      break
+      ;;
     -*)
-      $ECHO "Unknown option $1" ; exit 1 ;;
+      $ECHO "Unknown option $1"
+      usage 1
+      ;;
   esac
 done
 if [ "$HELP" == "true" ]; then
-  usage
+  usage 0
 fi
 
+GITARGS="$@"
+
 # handles moved or deleted files, keeps track of staging
-git status -s $UARG | while IFS= read -r; do 
+git status -s $UARG $GITARGS | while IFS= read -r; do 
   mode=${REPLY:0:2}
   unset IFS; read -r junk file <<< "$REPLY"
   afile=($file)
