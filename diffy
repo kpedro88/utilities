@@ -25,9 +25,9 @@ while [ $# -gt 0 ]; do
 			echo "Unexpected extra argument $1"
 			exit 1
 		elif [ -n "$FILE1" ]; then
-			FILE2=$1
+			FILE2="$1"
 		else
-			FILE1=$1
+			FILE1="$1"
 		fi
 		shift
 	;;
@@ -40,12 +40,12 @@ if [ -z "$FILE1" ] || [ -z "$FILE2" ]; then
 fi
 
 # find max length of lines in files, pad it a little
-len1=$(wc -L < $FILE1)
-len2=$(wc -L < $FILE2)
+len1=$(wc -L < "$FILE1")
+len2=$(wc -L < "$FILE2")
 len=$(( $len1 > $len2 ? $len1 : $len2 ))
 len=$(( $len*2 + 10 ))
 if [ -n "$MAXWIDTH" ]; then
 	len=$(( $len > $MAXWIDTH ? $MAXWIDTH : $len ))
 fi
 
-diff -y --width $len $ARGS $FILE1 $FILE2 | less -S
+diff -y --width $len $ARGS "$FILE1" "$FILE2" | less -S
