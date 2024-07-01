@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import six
 import subprocess
 import pydoc
 from collections import defaultdict
@@ -17,7 +18,7 @@ class StatusItem(object):
         self.rows = []
         
     def call(self):
-        cmd_output = subprocess.check_output(self.cmd)
+        cmd_output = subprocess.check_output(' '.join(self.cmd),shell=True).decode()
         self.header_lines = []
         self.keep_lines = []
         ctr = 0
@@ -72,7 +73,7 @@ class StatusItemSubmitters(StatusItem):
         for line in self.keep_lines:
             aggr_dict[line[0]] = list(map(add,aggr_dict[line[0]],[int(x) for x in line[2:5]]))
         # use aggr results, sorted by running
-        self.keep_lines = [[key]+[str(v) for v in val] for key,val in aggr_dict.iteritems()]
+        self.keep_lines = [[key]+[str(v) for v in val] for key,val in six.iteritems(aggr_dict)]
         self.keep_lines = sorted(self.keep_lines, key = lambda x: int(x[1]), reverse=True)
         # remove machine from header
         self.header_lines = [[line[0]]+line[2:] for line in self.header_lines]
