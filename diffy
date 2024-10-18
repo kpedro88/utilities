@@ -2,7 +2,7 @@
 
 FILE1=""
 FILE2=""
-ARGS=""
+ARGS="-t"
 MAXWIDTH=""
 
 # check arguments
@@ -14,6 +14,10 @@ while [ $# -gt 0 ]; do
 	;;
 	-L)
 		ARGS="$ARGS --left-column"
+		shift
+	;;
+	-t)
+		ARGS=$(echo "$ARGS" | sed 's/-t\b//')
 		shift
 	;;
 	-*)

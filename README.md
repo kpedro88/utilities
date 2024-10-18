@@ -129,7 +129,7 @@ Script to use diff side-by-side view (`diff -y`) with automatic width (max line 
 * `-M [num]` - specify max width
 * `-L` - shorthand for `--left-column` diff option
 
-All other flags are passed directly to the `diff` command (e.g. `-t`).
+All other flags are passed directly to the `diff` command. (`-t` is enabled by default, so passing it explicitly instead disables it.).
 
 ## `runIgprof.sh`
 
