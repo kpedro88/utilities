@@ -8,10 +8,34 @@ tunn_check_op() {
 	fi
 }
 
-tunn_read() {
+tunn_read_impl() {
 	# get list of tunnels
 	readarray -t TLIST < "$CONFIG"
 	export TLIST
+}
+
+tunn_update() {
+	tunn_read_impl
+	# clear list of tunnels
+	: > "$CONFIG"
+	# write open tunnels back into list
+	for ((i=0; i < ${#TLIST[@]}; i++)); do
+		tunn_entry $i
+		if eval $CMD -S "$SOCKETNAME" -O check >&/dev/null; then
+			echo "${TLIST[$i]}" >> "$CONFIG"
+		else
+			rm "$SOCKETNAME" >&/dev/null
+		fi
+	done
+	unset TLIST
+}
+
+tunn_read() {
+	if [ -z "$UNCLEAN" ]; then
+		tunn_read_impl
+		tunn_update
+	fi
+	tunn_read_impl
 }
 
 tunn_entry() {
@@ -55,22 +79,6 @@ tunn_list() {
 		usage 1
 	fi
 
-	if [ -n "$UPDATE" ]; then
-		tunn_read
-		# clear list of tunnels
-		: > "$CONFIG"
-		# write open tunnels back into list
-		for ((i=0; i < ${#TLIST[@]}; i++)); do
-			tunn_entry $i
-			if eval $CMD -S "$SOCKETNAME" -O check >&/dev/null; then
-				echo "${TLIST[$i]}" >> "$CONFIG"
-			else
-				rm "$SOCKETNAME" >&/dev/null
-			fi
-		done
-		unset TLIST
-	fi
-
 	tunn_read
 	if [ ${#TLIST[@]} -eq 0 ]; then
 		return
@@ -111,7 +119,7 @@ PORT=8864
 SOCKETNAME=""
 CMD=""
 INDEX=""
-UPDATE=""
+UNCLEAN=""
 
 usage() {
 	ECHO="echo -e"
@@ -125,13 +133,13 @@ usage() {
 	$ECHO "\t[command]   \t ssh command to run when making tunnel (required)"
 	$ECHO
 	$ECHO "list       \t list open tunnels"
-	$ECHO "\t-u       \t update list of tunnels (check status and remove closed ones)"
 	$ECHO
 	$ECHO "kill       \t kill specified tunnel"
 	$ECHO "\t[index]       \t index of tunnel (required)"
 	$ECHO
 	$ECHO "Common options:"
 	$ECHO "-A          \t disable loading of aliases"
+	$ECHO "-u          \t (unclean) do not auto-update list of tunnels by removing closed ones"
 	$ECHO "-h          \t print this message and exit"
 	exit $1
 }
@@ -160,7 +168,7 @@ while getopts "An:p:uh" opt; do
 		;;
 		p) tunn_check_op make; PORT="$OPTARG"
 		;;
-		u) tunn_check_op list; UPDATE=true
+		u) UNCLEAN=true
 		;;
 		h) usage 0
 		;;
