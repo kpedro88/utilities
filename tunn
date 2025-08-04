@@ -40,13 +40,13 @@ tunn_read() {
 
 tunn_entry() {
 	ENTRY="${TUNN_LIST[$1]}"
-	IFS=' ' read -r -a ENTRY_ARR <<< "$ENTRY"
+	# split, respecting quotes
+	declare -a "ENTRY_ARR=($ENTRY)"
 
 	# reconstruct command based on output format
 	export TUNN_SOCKETNAME="${ENTRY_ARR[0]}"
 	export TUNN_PORT="${ENTRY_ARR[1]}"
-	# gets last N-2 words
-	export TUNN_CMD="${ENTRY_ARR[*]: -$((${#ENTRY_ARR[@]}-2))}"
+	export TUNN_CMD="${ENTRY_ARR[2]}"
 }
 
 # operations
@@ -67,7 +67,7 @@ tunn_make() {
 
 	# add to list of tunnels
 	if [ $TUNN_EXIT -eq 0 ]; then
-		echo "$TUNN_SOCKETNAME $TUNN_PORT $TUNN_CMD" >> "$TUNN_LISTFILE"
+		echo "\"$TUNN_SOCKETNAME\" $TUNN_PORT \"$TUNN_CMD\"" >> "$TUNN_LISTFILE"
 	else
 		echo "Could not create tunnel (exit code $TUNN_EXIT)"
 		exit $TUNN_EXIT
