@@ -113,17 +113,34 @@ tunn_kill() {
 
 # defaults
 TUNN_LISTFILE=~/.tunnlist
+: ${TUNN_CONFIG:=~/.tunnconfig}
 TUNN_USE_ALIASES=true
-TUNN_NAMEPRE=~/tsock
-TUNN_PORT=8864
 TUNN_SOCKETNAME=""
 TUNN_CMD=""
 TUNN_INDEX=""
 TUNN_UNCLEAN=""
 
+# get config defaults
+if [ -e "$TUNN_CONFIG" ]; then
+	source "$TUNN_CONFIG"
+fi
+: ${TUNN_NAMEPRE:=~/tsock}
+UTMP=$(id -u)
+UTMP=${UTMP:0-3}
+: ${TUNN_PORT:=8${UTMP}}
+
 usage() {
 	ECHO="echo -e"
 	$ECHO "tunn [operation] [options] [arguments]"
+	$ECHO
+	$ECHO "Default settings are obtained from the config file at ${TUNN_CONFIG}."
+	$ECHO "To override the config file location, put this in your .bashrc or other login file:"
+	$ECHO "\texport TUNN_CONFIG=/my/preferred/file"
+	$ECHO "The available values are listed below and should be specified using bash syntax:"
+	$ECHO "\tTUNN_NAMEPRE=~/tsock"
+	$ECHO "\tTUNN_PORT=8XXX"
+	$ECHO "(If TUNN_PORT is not specified in the config file or via the command line option,"
+	$ECHO "the default value is taken from the last three digits of your UID.)"
 	$ECHO
 	$ECHO "Operations:"
 	$ECHO
@@ -139,7 +156,7 @@ usage() {
 	$ECHO
 	$ECHO "Common options:"
 	$ECHO "-A          \t disable loading of aliases"
-	$ECHO "-u          \t (unclean) do not auto-update list of tunnels by removing closed ones"
+	$ECHO "-u          \t (unclean) do not auto-remove closed tunnels from list"
 	$ECHO "-h          \t print this message and exit"
 	exit $1
 }
