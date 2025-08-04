@@ -3,35 +3,35 @@
 # helper functions
 
 tunn_check_op() {
-	if [ "$OP" != "$1" ]; then
+	if [ "$TUNN_OP" != "$1" ]; then
 		usage 1
 	fi
 }
 
 tunn_read_impl() {
 	# get list of tunnels
-	readarray -t TLIST < "$CONFIG"
-	export TLIST
+	readarray -t TUNN_LIST < "$TUNN_LISTFILE"
+	export TUNN_LIST
 }
 
 tunn_update() {
 	tunn_read_impl
 	# clear list of tunnels
-	: > "$CONFIG"
+	: > "$TUNN_LISTFILE"
 	# write open tunnels back into list
-	for ((i=0; i < ${#TLIST[@]}; i++)); do
+	for ((i=0; i < ${#TUNN_LIST[@]}; i++)); do
 		tunn_entry $i
-		if eval $CMD -S "$SOCKETNAME" -O check >&/dev/null; then
-			echo "${TLIST[$i]}" >> "$CONFIG"
+		if eval $TUNN_CMD -S "$TUNN_SOCKETNAME" -O check >&/dev/null; then
+			echo "${TUNN_LIST[$i]}" >> "$TUNN_LISTFILE"
 		else
-			rm "$SOCKETNAME" >&/dev/null
+			rm "$TUNN_SOCKETNAME" >&/dev/null
 		fi
 	done
-	unset TLIST
+	unset TUNN_LIST
 }
 
 tunn_read() {
-	if [ -z "$UNCLEAN" ]; then
+	if [ -z "$TUNN_UNCLEAN" ]; then
 		tunn_read_impl
 		tunn_update
 	fi
@@ -39,38 +39,38 @@ tunn_read() {
 }
 
 tunn_entry() {
-	ENTRY="${TLIST[$1]}"
+	ENTRY="${TUNN_LIST[$1]}"
 	IFS=' ' read -r -a ENTRY_ARR <<< "$ENTRY"
 
 	# reconstruct command based on output format
-	export SOCKETNAME="${ENTRY_ARR[0]}"
-	export PORT="${ENTRY_ARR[1]}"
+	export TUNN_SOCKETNAME="${ENTRY_ARR[0]}"
+	export TUNN_PORT="${ENTRY_ARR[1]}"
 	# gets last N-2 words
-	export CMD="${ENTRY_ARR[*]: -$((${#ENTRY_ARR[@]}-2))}"
+	export TUNN_CMD="${ENTRY_ARR[*]: -$((${#ENTRY_ARR[@]}-2))}"
 }
 
 # operations
 
 tunn_make() {
-	CMD="$@"
-	if [ -z "$CMD" ]; then
+	TUNN_CMD="$@"
+	if [ -z "$TUNN_CMD" ]; then
 		usage 1
 	fi
 
 	# generate a random name for socket
-	SOCKETNUM=$(uuidgen)
-	SOCKETNAME="$NAMEPRE"_"$SOCKETNUM"
+	TUNN_SOCKETNUM=$(uuidgen)
+	TUNN_SOCKETNAME="$TUNN_NAMEPRE"_"$TUNN_SOCKETNUM"
 
 	# execute tunnel command
-	eval $CMD -N -D $PORT -f -M -S "$SOCKETNAME" 2>/dev/null
-	TEXIT=$?
+	eval $TUNN_CMD -N -D $TUNN_PORT -f -M -S "$TUNN_SOCKETNAME" 2>/dev/null
+	TUNN_EXIT=$?
 
 	# add to list of tunnels
-	if [ $TEXIT -eq 0 ]; then
-		echo "$SOCKETNAME $PORT $CMD" >> "$CONFIG"
+	if [ $TUNN_EXIT -eq 0 ]; then
+		echo "$TUNN_SOCKETNAME $TUNN_PORT $TUNN_CMD" >> "$TUNN_LISTFILE"
 	else
-		echo "Could not create tunnel (exit code $TEXIT)"
-		exit $TEXIT
+		echo "Could not create tunnel (exit code $TUNN_EXIT)"
+		exit $TUNN_EXIT
 	fi
 }
 
@@ -80,12 +80,12 @@ tunn_list() {
 	fi
 
 	tunn_read
-	if [ ${#TLIST[@]} -eq 0 ]; then
+	if [ ${#TUNN_LIST[@]} -eq 0 ]; then
 		return
 	fi
 	echo "index: socket port command"
-	for ((i=0; i < ${#TLIST[@]}; i++)); do
-		echo "$i: ${TLIST[$i]}"
+	for ((i=0; i < ${#TUNN_LIST[@]}; i++)); do
+		echo "$i: ${TUNN_LIST[$i]}"
 	done
 }
 
@@ -97,7 +97,7 @@ tunn_kill() {
 
 	# get this tunnel
 	tunn_read
-	if [ $INDEX -lt ${#TLIST[@]} ]; then
+	if [ $INDEX -lt ${#TUNN_LIST[@]} ]; then
 		tunn_entry $INDEX
 	else
 		echo "Tunnel index $INDEX not found"
@@ -105,21 +105,21 @@ tunn_kill() {
 	fi
 
 	# execute kill command
-	eval $CMD -S "$SOCKETNAME" -O exit
+	eval $TUNN_CMD -S "$TUNN_SOCKETNAME" -O exit
 
 	# update list
-	sed -i "$((INDEX+1))"d "$CONFIG"
+	sed -i "$((INDEX+1))"d "$TUNN_LISTFILE"
 }
 
 # defaults
-CONFIG=~/.tunnlist
-USE_ALIASES=true
-NAMEPRE=~/tsock
-PORT=8864
-SOCKETNAME=""
-CMD=""
-INDEX=""
-UNCLEAN=""
+TUNN_LISTFILE=~/.tunnlist
+TUNN_USE_ALIASES=true
+TUNN_NAMEPRE=~/tsock
+TUNN_PORT=8864
+TUNN_SOCKETNAME=""
+TUNN_CMD=""
+TUNN_INDEX=""
+TUNN_UNCLEAN=""
 
 usage() {
 	ECHO="echo -e"
@@ -128,8 +128,8 @@ usage() {
 	$ECHO "Operations:"
 	$ECHO
 	$ECHO "make       \t make new tunnel"
-	$ECHO "\t-n [name]   \t tunnel socket name prefix (default: ${NAMEPRE})"
-	$ECHO "\t-p [port]   \t tunnel port (default: $PORT)"
+	$ECHO "\t-n [name]   \t tunnel socket name prefix (default: ${TUNN_NAMEPRE})"
+	$ECHO "\t-p [port]   \t tunnel port (default: $TUNN_PORT)"
 	$ECHO "\t[command]   \t ssh command to run when making tunnel (required)"
 	$ECHO
 	$ECHO "list       \t list open tunnels"
@@ -145,16 +145,16 @@ usage() {
 }
 
 # get operation
-OP=$1
+TUNN_OP=$1
 shift 1
 
-OPFN=""
-case "$OP" in
-	make) OPFN=tunn_make
+TUNN_OPFN=""
+case "$TUNN_OP" in
+	make) TUNN_OPFN=tunn_make
 	;;
-	list) OPFN=tunn_list
+	list) TUNN_OPFN=tunn_list
 	;;
-	kill) OPFN=tunn_kill
+	kill) TUNN_OPFN=tunn_kill
 	;;
 	*) usage 1
 	;;
@@ -162,13 +162,13 @@ esac
 
 while getopts "An:p:uh" opt; do
 	case "$opt" in
-		A) USE_ALIASES=""
+		A) TUNN_USE_ALIASES=""
 		;;
-		n) tunn_check_op make; NAMEPRE="$OPTARG"
+		n) tunn_check_op make; TUNN_NAMEPRE="$OPTARG"
 		;;
-		p) tunn_check_op make; PORT="$OPTARG"
+		p) tunn_check_op make; TUNN_PORT="$OPTARG"
 		;;
-		u) UNCLEAN=true
+		u) TUNN_UNCLEAN=true
 		;;
 		h) usage 0
 		;;
@@ -176,13 +176,18 @@ while getopts "An:p:uh" opt; do
 done
 
 # get ssh aliases
-if [ -n "$USE_ALIASES" ]; then
+if [ -n "$TUNN_USE_ALIASES" ]; then
 	shopt -s expand_aliases
 	source ~/.bashrc
+fi
+
+# ensure list file exists
+if [ ! -e "$TUNN_LISTFILE" ]; then
+	touch "$TUNN_LISTFILE"
 fi
 
 # get args for operation (if any)
 shift $(($OPTIND - 1))
 
 # execute operation
-$OPFN "$@"
+$TUNN_OPFN "$@"
