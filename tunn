@@ -66,7 +66,7 @@ tunn_make() {
 
 	# generate a random name for socket
 	TUNN_SOCKETNUM=$(uuidgen)
-	TUNN_SOCKETNAME="$TUNN_NAMEPRE"_"$TUNN_SOCKETNUM"
+	TUNN_SOCKETNAME="$TUNN_PREFIX"_"$TUNN_SOCKETNUM"
 
 	# execute tunnel command
 	ssh $TUNN_DEST -N -D $TUNN_PORT -f -M -S "$TUNN_SOCKETNAME" 2>/dev/null
@@ -132,7 +132,7 @@ TUNN_UNCLEAN=""
 if [ -e "$TUNN_CONFIG" ]; then
 	source "$TUNN_CONFIG"
 fi
-: ${TUNN_NAMEPRE:=~/tsock}
+: ${TUNN_PREFIX:=~/.tsock}
 UTMP=$(id -u)
 UTMP=${UTMP:0-3}
 : ${TUNN_PORT:=8${UTMP}}
@@ -149,7 +149,7 @@ usage() {
 	$ECHO "Default settings are obtained from the config file at ${TUNN_CONFIG}."
 	$ECHO "To override the config file location, put this in your .bashrc or other login file:"
 	$ECHO "\texport TUNN_CONFIG=/my/preferred/file"
-	$ECHO "The available config variables are: TUNN_NAMEPRE, TUNN_PORT, TUNN_VERBOSE."
+	$ECHO "The available config variables are: TUNN_PREFIX, TUNN_PORT, TUNN_VERBOSE."
 	$ECHO "Their values should be specified in the config file using bash syntax, e.g.:"
 	$ECHO "\tTUNN_PORT=8XXX"
 	$ECHO "(If TUNN_PORT is not specified in the config file or via the command line option,"
@@ -158,7 +158,7 @@ usage() {
 	$ECHO "Operations:"
 	$ECHO
 	$ECHO "make       \t make new tunnel"
-	$ECHO "\t-n [name]     \t tunnel socket name prefix (default: ${TUNN_NAMEPRE})"
+	$ECHO "\t-n [name]     \t tunnel socket name prefix (default: ${TUNN_PREFIX})"
 	$ECHO "\t-p [port]     \t tunnel port (default: $TUNN_PORT)"
 	$ECHO "\t[destination] \t ssh destination for tunnel (required)"
 	$ECHO
@@ -192,7 +192,7 @@ esac
 
 while getopts "n:p:uvh" opt; do
 	case "$opt" in
-		n) tunn_check_op make; TUNN_NAMEPRE="$OPTARG"
+		n) tunn_check_op make; TUNN_PREFIX="$OPTARG"
 		;;
 		p) tunn_check_op make; TUNN_PORT="$OPTARG"
 		;;
