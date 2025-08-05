@@ -164,7 +164,7 @@ A simple utility to create and manage SSH tunnels.
 ```
 tunn [operation] [options] [arguments]
 
-Default settings are obtained from the config file at /home/[user]/.tunnconfig.
+Default settings are obtained from the config file at /home/pedrok/.tunnconfig.
 To override the config file location, put this in your .bashrc or other login file:
     export TUNN_CONFIG=/my/preferred/file
 The available values are listed below and should be specified using bash syntax:
@@ -176,9 +176,9 @@ the default value is taken from the last three digits of your UID.)
 Operations:
 
 make         make new tunnel
-    -n [name]        tunnel socket name prefix (default: /home/[user]/tsock)
-    -p [port]        tunnel port (default: 8XXX)
-    [command]        ssh command to run when making tunnel (required)
+    -n [name]        tunnel socket name prefix (default: /home/pedrok/tsock)
+    -p [port]        tunnel port (default: 8864)
+    [destination]    ssh destination for tunnel (required)
 
 list         list open tunnels
 
@@ -186,9 +186,8 @@ kill         kill specified tunnel
     [index]          index of tunnel (required)
 
 Common options:
--A               disable loading of aliases
--u               (unclean) do not auto-remove closed tunnels from list
--h               print this message and exit
+-u           (unclean) do not auto-remove closed tunnels from list
+-h           print this message and exit
 ```
 
 Useful aliases:

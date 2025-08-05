@@ -21,7 +21,7 @@ tunn_update() {
 	# write open tunnels back into list
 	for ((i=0; i < ${#TUNN_LIST[@]}; i++)); do
 		tunn_entry $i
-		if eval "$TUNN_CMD -S \"$TUNN_SOCKETNAME\" -O check" >&/dev/null; then
+		if ssh $TUNN_DEST -S "$TUNN_SOCKETNAME" -O check >&/dev/null; then
 			echo "${TUNN_LIST[$i]}" >> "$TUNN_LISTFILE"
 		else
 			rm "$TUNN_SOCKETNAME" >&/dev/null
@@ -46,14 +46,14 @@ tunn_entry() {
 	# reconstruct command based on output format
 	export TUNN_SOCKETNAME="${ENTRY_ARR[0]}"
 	export TUNN_PORT="${ENTRY_ARR[1]}"
-	export TUNN_CMD="${ENTRY_ARR[2]}"
+	export TUNN_DEST="${ENTRY_ARR[2]}"
 }
 
 # operations
 
 tunn_make() {
-	TUNN_CMD="$@"
-	if [ -z "$TUNN_CMD" ]; then
+	TUNN_DEST="$@"
+	if [ -z "$TUNN_DEST" ]; then
 		usage 1
 	fi
 
@@ -62,12 +62,12 @@ tunn_make() {
 	TUNN_SOCKETNAME="$TUNN_NAMEPRE"_"$TUNN_SOCKETNUM"
 
 	# execute tunnel command
-	eval "$TUNN_CMD -N -D $TUNN_PORT -f -M -S \"$TUNN_SOCKETNAME\"" 2>/dev/null
+	ssh $TUNN_DEST -N -D $TUNN_PORT -f -M -S "$TUNN_SOCKETNAME" 2>/dev/null
 	TUNN_EXIT=$?
 
 	# add to list of tunnels
 	if [ $TUNN_EXIT -eq 0 ]; then
-		echo "\"$TUNN_SOCKETNAME\" $TUNN_PORT \"$TUNN_CMD\"" >> "$TUNN_LISTFILE"
+		echo "\"$TUNN_SOCKETNAME\" $TUNN_PORT \"$TUNN_DEST\"" >> "$TUNN_LISTFILE"
 	else
 		echo "Could not create tunnel (exit code $TUNN_EXIT)"
 		exit $TUNN_EXIT
@@ -83,7 +83,7 @@ tunn_list() {
 	if [ ${#TUNN_LIST[@]} -eq 0 ]; then
 		return
 	fi
-	echo "index: socket port command"
+	echo "index: socket port destination"
 	for ((i=0; i < ${#TUNN_LIST[@]}; i++)); do
 		echo "$i: ${TUNN_LIST[$i]}"
 	done
@@ -105,7 +105,7 @@ tunn_kill() {
 	fi
 
 	# execute kill command
-	eval "$TUNN_CMD -S \"$TUNN_SOCKETNAME\" -O exit"
+	ssh $TUNN_DEST -S "$TUNN_SOCKETNAME" -O exit
 
 	# update list
 	sed -i "$((INDEX+1))"d "$TUNN_LISTFILE"
@@ -114,9 +114,8 @@ tunn_kill() {
 # defaults
 TUNN_LISTFILE=~/.tunnlist
 : ${TUNN_CONFIG:=~/.tunnconfig}
-TUNN_USE_ALIASES=true
 TUNN_SOCKETNAME=""
-TUNN_CMD=""
+TUNN_DEST=""
 TUNN_INDEX=""
 TUNN_UNCLEAN=""
 
@@ -145,9 +144,9 @@ usage() {
 	$ECHO "Operations:"
 	$ECHO
 	$ECHO "make       \t make new tunnel"
-	$ECHO "\t-n [name]   \t tunnel socket name prefix (default: ${TUNN_NAMEPRE})"
-	$ECHO "\t-p [port]   \t tunnel port (default: $TUNN_PORT)"
-	$ECHO "\t[command]   \t ssh command to run when making tunnel (required)"
+	$ECHO "\t-n [name]     \t tunnel socket name prefix (default: ${TUNN_NAMEPRE})"
+	$ECHO "\t-p [port]     \t tunnel port (default: $TUNN_PORT)"
+	$ECHO "\t[destination] \t ssh destination for tunnel (required)"
 	$ECHO
 	$ECHO "list       \t list open tunnels"
 	$ECHO
@@ -155,9 +154,8 @@ usage() {
 	$ECHO "\t[index]       \t index of tunnel (required)"
 	$ECHO
 	$ECHO "Common options:"
-	$ECHO "-A          \t disable loading of aliases"
-	$ECHO "-u          \t (unclean) do not auto-remove closed tunnels from list"
-	$ECHO "-h          \t print this message and exit"
+	$ECHO "-u         \t (unclean) do not auto-remove closed tunnels from list"
+	$ECHO "-h         \t print this message and exit"
 	exit $1
 }
 
@@ -177,10 +175,8 @@ case "$TUNN_OP" in
 	;;
 esac
 
-while getopts "An:p:uh" opt; do
+while getopts "n:p:uh" opt; do
 	case "$opt" in
-		A) TUNN_USE_ALIASES=""
-		;;
 		n) tunn_check_op make; TUNN_NAMEPRE="$OPTARG"
 		;;
 		p) tunn_check_op make; TUNN_PORT="$OPTARG"
@@ -191,12 +187,6 @@ while getopts "An:p:uh" opt; do
 		;;
 	esac
 done
-
-# get ssh aliases
-if [ -n "$TUNN_USE_ALIASES" ]; then
-	shopt -s expand_aliases
-	source ~/.bashrc
-fi
 
 # ensure list file exists
 if [ ! -e "$TUNN_LISTFILE" ]; then
