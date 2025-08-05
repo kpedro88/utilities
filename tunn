@@ -21,7 +21,7 @@ tunn_update() {
 	# write open tunnels back into list
 	for ((i=0; i < ${#TUNN_LIST[@]}; i++)); do
 		tunn_entry $i
-		if eval $TUNN_CMD -S "$TUNN_SOCKETNAME" -O check >&/dev/null; then
+		if eval "$TUNN_CMD -S \"$TUNN_SOCKETNAME\" -O check" >&/dev/null; then
 			echo "${TUNN_LIST[$i]}" >> "$TUNN_LISTFILE"
 		else
 			rm "$TUNN_SOCKETNAME" >&/dev/null
@@ -62,7 +62,7 @@ tunn_make() {
 	TUNN_SOCKETNAME="$TUNN_NAMEPRE"_"$TUNN_SOCKETNUM"
 
 	# execute tunnel command
-	eval $TUNN_CMD -N -D $TUNN_PORT -f -M -S "$TUNN_SOCKETNAME" 2>/dev/null
+	eval "$TUNN_CMD -N -D $TUNN_PORT -f -M -S \"$TUNN_SOCKETNAME\"" 2>/dev/null
 	TUNN_EXIT=$?
 
 	# add to list of tunnels
@@ -105,7 +105,7 @@ tunn_kill() {
 	fi
 
 	# execute kill command
-	eval $TUNN_CMD -S "$TUNN_SOCKETNAME" -O exit
+	eval "$TUNN_CMD -S \"$TUNN_SOCKETNAME\" -O exit"
 
 	# update list
 	sed -i "$((INDEX+1))"d "$TUNN_LISTFILE"
