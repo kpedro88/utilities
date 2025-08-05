@@ -167,8 +167,8 @@ tunn [operation] [options] [arguments]
 Default settings are obtained from the config file at /home/pedrok/.tunnconfig.
 To override the config file location, put this in your .bashrc or other login file:
     export TUNN_CONFIG=/my/preferred/file
-The available values are listed below and should be specified using bash syntax:
-    TUNN_NAMEPRE=~/tsock
+The available config variables are: TUNN_NAMEPRE, TUNN_PORT, TUNN_VERBOSE.
+Their values should be specified in the config file using bash syntax, e.g.:
     TUNN_PORT=8XXX
 (If TUNN_PORT is not specified in the config file or via the command line option,
 the default value is taken from the last three digits of your UID.)
@@ -187,6 +187,7 @@ kill         kill specified tunnel
 
 Common options:
 -u           (unclean) do not auto-remove closed tunnels from list
+-v           toggle verbosity (default: false)
 -h           print this message and exit
 ```
 
