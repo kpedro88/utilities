@@ -1,0 +1,45 @@
+#!/bin/bash -e
+
+case `uname` in
+  Linux|CYGWIN*) ECHO="echo -e" ;;
+  *) ECHO="echo" ;;
+esac
+
+# implements https://stackoverflow.com/questions/5189560/how-do-i-squash-my-last-n-commits-together
+
+usage() {
+  $ECHO "git squash [options] <REF>"
+  $ECHO
+  $ECHO "Options:"
+  $ECHO "-k, --keep        \tkeep commit messages from squashed commits"
+  exit 1
+}
+
+AFTER=""
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -k|--keep)
+      KEEP=true
+      shift
+      ;;
+    -*)
+      $ECHO "Unknown option $1" ; exit 1 ;;
+    *)
+      if [ ! X$REF = X ]; then
+        $ECHO "Unexpected extra argument $1" ; exit 1
+      fi
+      REF=$1
+      shift
+      ;;
+  esac
+done
+if [ -z "$REF" ]; then
+  usage
+fi
+
+if [ "$KEEP" == "true" ]; then
+  git reset --hard "$REF"; git merge --squash "HEAD@{1}"; git commit
+else
+  git reset --soft "$REF"; git commit
+fi

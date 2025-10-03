@@ -83,6 +83,16 @@ Options:
 --                      separator; anything after this will be passed to git status
 ```
 
+## `git squash`
+
+Squash the last N commits, i.e. `git squash HEAD~N`.
+```
+git squash [options] <REF>
+
+Options:
+-k, --keep              keep commit messages from squashed commits
+```
+
 ## `git-sync`
 
 Overwrites the current branch and working area with the branch version from a specified remote.
